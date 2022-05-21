@@ -1,0 +1,9 @@
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+12928         0x3280          U-Boot version string, "U-Boot 1.1.4 (Mar 10 2015 - 15:00:39)"
+12976         0x32B0          CRC32 polynomial table, big endian
+14288         0x37D0          uImage header, header size: 64 bytes, header CRC: 0x8E2B46CA, created: 2015-03-10 07:00:39, image size: 35711 bytes, Data Address: 0x80010000, Entry Point: 0x80010000, data CRC: 0x72C78246, OS: Linux, CPU: MIPS, image type: Firmware Image, compression type: lzma, image name: "u-boot image"
+14352         0x3810          LZMA compressed data, properties: 0x5D, dictionary size: 33554432 bytes, uncompressed size: 93256 bytes
+131072        0x20000         TP-Link firmware header, firmware version: 0.0.3, image version: "", product ID: 0x0, product version: 138477584, kernel load address: 0x0, kernel entry point: 0x80002000, kernel offset: 3932160, kernel length: 512, rootfs offset: 761358, rootfs length: 1048576, bootloader offset: 2883584, bootloader length: 0
+131584        0x20200         LZMA compressed data, properties: 0x5D, dictionary size: 33554432 bytes, uncompressed size: 2219160 bytes
+1179648       0x120000        Squashfs filesystem, little endian, version 4.0, compression:lzma, size: 2477651 bytes, 560 inodes, blocksize: 131072 bytes, created: 2015-03-10 07:25:11
