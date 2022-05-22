@@ -41,3 +41,4 @@ This is the list of every softwares and equipement I use.
 - Logic analyser (dsview)
 - Series port communication (putty / screen)
 - binary analyser (binwalk)
+- (Optionaly) MIPS emulator (qemu)
