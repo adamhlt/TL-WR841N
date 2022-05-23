@@ -79,5 +79,5 @@ As I expect I can easily find the ground, then with my multimeter I looked for o
 
 So, after soldering pins to test outputs easier, I can use my logic analyser to see datas and try to identify the protocol.
 
-
+![Logic Analyser 1](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img4.png?raw=true)
 
