@@ -49,7 +49,7 @@ This is the list of every softwares and equipement I use.
 
 ##### External router photo :
 
-![External Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img1.png?raw=true)
+![External Photo](https://user-images.githubusercontent.com/48086737/169881510-b52a471b-d75e-4fc9-a1a1-d8d527619881.png)
 
 ##### Internal router photo (I unsoldered the antennas) :
 
