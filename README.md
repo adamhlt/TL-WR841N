@@ -61,3 +61,4 @@ On the internal photo we can see a lot of things, first on the left we can notic
 
 Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
 
+![Internal Demo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img9.png?raw=true)
