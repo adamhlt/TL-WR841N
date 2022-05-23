@@ -51,7 +51,7 @@ This is the list of every softwares and equipement I use.
 
 ![External Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img1.png?raw=true)
 
-##### Internal router photo :
+##### Internal router photo (I unsoldered the antennas) :
 
 ![Internal Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img2.png?raw=true)
 
@@ -72,4 +72,12 @@ To test the 4 pin series port, I start by trying to find the ground with my mult
 As I expect I can easily find the ground, then with my multimeter I looked for other pins, the output is 3,3 V. The two last pins, seems to be RX and TX, one is 0 V and the other oscillate, which can mean it send datas. 
 
 ![Pins Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img3.png?raw=true)
+
+
+
+### 3 - Use logic analyser
+
+So, after soldering pins to test outputs easier, I can use my logic analyser to see datas and try to identify the protocol.
+
+
 
