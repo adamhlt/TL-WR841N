@@ -71,3 +71,5 @@ To test the 4 pin series port, I start by trying to find the ground with my mult
 
 As I expect I can easily find the ground, then with my multimeter I looked for other pins, the output is 3,3 V. The two last pins, seems to be RX and TX, one is 0 V and the other oscillate, which can mean it send datas. 
 
+![Pins Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img3.png?raw=true)
+
