@@ -147,3 +147,5 @@ Id,Time[ns],0:UART: RX/TX
 ```
 
 We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das_U-Boot) boot loader.
+
+Next step is to connect pins to TTL to USB converter and try to get a shell.
