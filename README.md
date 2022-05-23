@@ -54,3 +54,10 @@ This is the list of every softwares and equipement I use.
 ##### Internal router photo :
 
 ![Internal Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img2.png?raw=true)
+
+### 1 - Identify components 
+
+On the internal photo we can see a lot of things, first on the left we can notice that we have severals connectors, the one which contains 4 pins can be UART port or another series port.
+
+Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
+
