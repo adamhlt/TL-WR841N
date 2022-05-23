@@ -78,11 +78,12 @@ So, after soldering pins to test outputs easier, I can use my logic analyser to 
 
 ![Logic Analyser 1](https://user-images.githubusercontent.com/48086737/169893802-85cd8f60-4fab-4e5e-a780-f7cb92d65014.png)
 
-![Logic Analyser 2](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img5.png?raw=true)
+![Logic Analyser 2](https://user-images.githubusercontent.com/48086737/169894288-e99b0975-9b63-413f-9b43-00f5cba3f7ff.png)
+
 
 After everthing is connected I can start DSView, config the logic analyzer and start the router to try to capture the outputs.
 
-![DSView](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img6.PNG?raw=true)
+![DSView](https://user-images.githubusercontent.com/48086737/169894454-6a75ece9-2719-4fc9-9c2f-186f3df3b987.png)
 
 The captured datas are correctly recognized as UART communications and we can see the a part of the logs in ASCII.
 
