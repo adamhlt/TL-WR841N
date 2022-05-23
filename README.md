@@ -42,3 +42,7 @@ This is the list of every softwares and equipement I use.
 - Series port communication (putty / screen)
 - binary analyser (binwalk)
 - (Optionaly) MIPS emulator (qemu)
+
+
+
+## :computer: Start Hacking
