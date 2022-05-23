@@ -76,7 +76,7 @@ As I expect I can easily find the ground, then with my multimeter I looked for o
 
 So, after soldering pins to test outputs easier, I can use my logic analyser to see datas and try to identify the protocol.
 
-![Logic Analyser 1](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img4.png?raw=true)
+![Logic Analyser 1](https://user-images.githubusercontent.com/48086737/169893802-85cd8f60-4fab-4e5e-a780-f7cb92d65014.png)
 
 ![Logic Analyser 2](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img5.png?raw=true)
 
@@ -146,5 +146,3 @@ Id,Time[ns],0:UART: RX/TX
 We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das_U-Boot) boot loader.
 
 Next step is to connect pins to TTL to USB converter and try to get a shell.
-
-
