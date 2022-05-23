@@ -87,7 +87,7 @@ After everthing is connected I can start DSView, config the logic analyzer and s
 
 The captured datas are correctly recognized as UART communications and we can see the a part of the logs in ASCII.
 
-This is a part of decoded datas I collected (entire datas [here](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/logic%20analyser.txt)) :
+This is a part of decoded datas I collected (entire datas [here](https://github.com/adamhlt/TL-WR841N/files/8757659/logic.analyser.txt) :
 
 ```
 Id,Time[ns],0:UART: RX/TX
