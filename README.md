@@ -62,3 +62,12 @@ On the internal photo we can see a lot of things, first on the left we can notic
 Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
 
 ![Internal Demo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img9.png?raw=true)
+
+
+
+### 2 - Test potentiel series port
+
+To test the 4 pin series port, I start by trying to find the ground with my multimeter in continuity mode.
+
+As I expect I can easily find the ground, then with my multimeter I looked for other pins, the output is 3,3 V. The two last pins, seems to be RX and TX, one is 0 V and the other oscillate, which can mean it send datas. 
+
