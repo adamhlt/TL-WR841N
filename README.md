@@ -46,3 +46,11 @@ This is the list of every softwares and equipement I use.
 
 
 ## :computer: Start Hacking
+
+##### External router photo :
+
+![External Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img1.png?raw=true)
+
+##### Internal router photo :
+
+![Internal Photo](https://github.com/adamhlt/TL-WR841N/blob/main/Ressources/img2.png?raw=true)
