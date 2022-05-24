@@ -1,4 +1,4 @@
-![Banner](https://user-images.githubusercontent.com/48086737/169880850-a9f657c0-3a91-4ca0-a68d-8d974168761f.png)
+![Banner](https://user-images.githubusercontent.com/48086737/170033919-fdad0cfb-926b-4d0f-9433-55660431b53e.png)
 
 # TL-WR841N
 
