@@ -164,4 +164,4 @@ When you connect adapter or any device which communicate using UART you should b
 
 ![Setup 2](https://user-images.githubusercontent.com/48086737/170244702-c216feca-09da-4e8b-9f47-bd8e6a9e30ca.png)
 
-https://user-images.githubusercontent.com/48086737/170245389-5f22e46f-3403-436e-b608-01d1ee9d46b2.mp4
+https://user-images.githubusercontent.com/48086737/170248292-8ba71541-bd88-4038-8fe3-116d35919d7b.mp4
