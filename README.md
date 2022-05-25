@@ -156,5 +156,4 @@ When you connect adapter or any device which communicate using UART you should b
 
 You have to plug cables like this :
 
-IMAGE PLUG
-
+![uart-tx-rx-cross](https://user-images.githubusercontent.com/48086737/170241688-4efa98fe-b2dd-4cb2-8971-9d09f82994c5.png)
