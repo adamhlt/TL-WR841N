@@ -147,3 +147,14 @@ Id,Time[ns],0:UART: RX/TX
 We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das_U-Boot) boot loader.
 
 Next step is to connect pins to TTL to USB converter and try to get a shell.
+
+### 3 - Try to get a shell
+
+Now, I'm trying to get a shell on the device via UART, I'm using my TTL to USB adapter.
+
+When you connect adapter or any device which communicate using UART you should be careful about the way you plug the cables.
+
+You have to plug cables like this :
+
+IMAGE PLUG
+
