@@ -159,3 +159,7 @@ When you connect adapter or any device which communicate using UART you should b
 ##### ![uart-tx-rx-cross](https://user-images.githubusercontent.com/48086737/170241688-4efa98fe-b2dd-4cb2-8971-9d09f82994c5.png)
 
 #### My setup :
+
+![Setup 1](https://user-images.githubusercontent.com/48086737/170243886-e8935238-a259-4a4d-8ac1-a25231699874.png)
+
+![Setup 2](https://user-images.githubusercontent.com/48086737/170244702-c216feca-09da-4e8b-9f47-bd8e6a9e30ca.png)
