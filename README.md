@@ -154,8 +154,8 @@ Now, I'm trying to get a shell on the device via UART, I'm using my TTL to USB a
 
 When you connect adapter or any device which communicate using UART you should be careful about the way you plug the cables.
 
-##### You have to plug the cables like this :
+#### You have to plug the cables like this :
 
 ##### ![uart-tx-rx-cross](https://user-images.githubusercontent.com/48086737/170241688-4efa98fe-b2dd-4cb2-8971-9d09f82994c5.png)
 
-##### My setup :
+#### My setup :
