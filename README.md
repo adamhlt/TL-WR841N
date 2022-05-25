@@ -163,3 +163,5 @@ When you connect adapter or any device which communicate using UART you should b
 ![Setup 1](https://user-images.githubusercontent.com/48086737/170243886-e8935238-a259-4a4d-8ac1-a25231699874.png)
 
 ![Setup 2](https://user-images.githubusercontent.com/48086737/170244702-c216feca-09da-4e8b-9f47-bd8e6a9e30ca.png)
+
+https://user-images.githubusercontent.com/48086737/170245389-5f22e46f-3403-436e-b608-01d1ee9d46b2.mp4
