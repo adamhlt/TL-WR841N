@@ -49,11 +49,11 @@ This is the list of every softwares and equipement I use.
 
 ##### External router photo :
 
-![External Photo](https://user-images.githubusercontent.com/48086737/169881510-b52a471b-d75e-4fc9-a1a1-d8d527619881.png)
+![External Photo](https://user-images.githubusercontent.com/48086737/170682620-f0b01329-ec6b-41ec-9d74-0b974ef3a716.jpg)
 
 ##### Internal router photo (I unsoldered the antennas) :
 
-![Internal Photo](https://user-images.githubusercontent.com/48086737/169884723-451c9852-20cc-4345-a31e-fafebdfe34ac.png)
+![Internal Photo](https://user-images.githubusercontent.com/48086737/170682670-7add7410-b7db-45e7-9b18-164d21e6b764.jpg)
 
 ### 1 - Identify components 
 
@@ -61,7 +61,7 @@ On the internal photo we can see a lot of things, first on the left we can notic
 
 Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
 
-![Internal Demo](https://user-images.githubusercontent.com/48086737/169885420-79085ad9-3837-423b-bcee-231088dcc52d.png)
+![Internal Demo](https://user-images.githubusercontent.com/48086737/170682756-4c242515-40b0-4e49-bb15-aa4a47a83c88.jpg)
 
 ### 2 - Test potentiel series port
 
@@ -69,21 +69,19 @@ To test the 4 pin series port, I start by trying to find the ground with my mult
 
 As I expect I can easily find the ground, then with my multimeter I looked for other pins, the output is 3,3 V. The two last pins, seems to be RX and TX, one is 0 V and the other oscillate, which can mean it send datas. 
 
-![Pins Demo](https://user-images.githubusercontent.com/48086737/169885011-302efd2d-11a3-4144-8e08-0c2a5b260c77.png)
-
+![Pins Demo](https://user-images.githubusercontent.com/48086737/170682821-88fe605e-e72f-498a-9cd6-2c420fe98d6c.jpg)
 
 ### 3 - Use logic analyser
 
 So, after soldering pins to test outputs easier, I can use my logic analyser to see datas and try to identify the protocol.
 
-![Logic Analyser 1](https://user-images.githubusercontent.com/48086737/169893802-85cd8f60-4fab-4e5e-a780-f7cb92d65014.png)
+![Logic Analyser 1](https://user-images.githubusercontent.com/48086737/170682898-b13fd3da-eb2a-43ac-a2f3-a2b33d503631.jpg)
 
-![Logic Analyser 2](https://user-images.githubusercontent.com/48086737/169894288-e99b0975-9b63-413f-9b43-00f5cba3f7ff.png)
-
+![Logic Analyser 2](https://user-images.githubusercontent.com/48086737/170682963-70eb8386-2a83-42fe-b47a-df061057be15.jpg)
 
 After everthing is connected I can start DSView, config the logic analyzer and start the router to try to capture the outputs.
 
-![DSView](https://user-images.githubusercontent.com/48086737/169894454-6a75ece9-2719-4fc9-9c2f-186f3df3b987.png)
+![DSView](https://user-images.githubusercontent.com/48086737/170683021-6e23dbe9-17a4-4712-814b-23eb6b123923.jpg)
 
 The captured datas are correctly recognized as UART communications and we can see the a part of the logs in ASCII.
 
@@ -160,8 +158,8 @@ When you connect adapter or any device which communicate using UART you should b
 
 #### My setup :
 
-![Setup 1](https://user-images.githubusercontent.com/48086737/170243886-e8935238-a259-4a4d-8ac1-a25231699874.png)
+![Setup 1](https://user-images.githubusercontent.com/48086737/170683129-c3ca68d9-8d80-46e7-a83a-72ad609ec07b.jpg)
 
-![Setup 2](https://user-images.githubusercontent.com/48086737/170244702-c216feca-09da-4e8b-9f47-bd8e6a9e30ca.png)
+![Setup 2](https://user-images.githubusercontent.com/48086737/170683167-4caebf8f-d8ea-48da-87f5-75ab388f85c9.jpg)
 
 https://user-images.githubusercontent.com/48086737/170248292-8ba71541-bd88-4038-8fe3-116d35919d7b.mp4
