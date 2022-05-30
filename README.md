@@ -177,10 +177,10 @@ Hypothesis :
 
 I will try to solve every hypothesis and find what is the problem, I will start by the easiest to the hardest to solve. I can only test the 2 last hypothesis because I can't know if the firmware has limitations without reversing it.
 
-##### 1 - The TX signal is not working on the adapter
+#### 1 - The TX signal is not working on the adapter
 
 The hypotesis can be easily discarded, on the TTL adapter there is a led that indicate when a signal is send, and it is perfectly working. Moreover when I connect the TX pin to the RX pin of the adapter everything works great.
 
 So, the problem don't come from the adapter.
 
-##### 2 - The RX signal is not transmit on the board
+#### 2 - The RX signal is not transmit on the board
