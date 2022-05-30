@@ -57,35 +57,40 @@ This is the list of every softwares and equipement I use.
 
 ### 1 - Identify components 
 
-On the internal photo we can see a lot of things, first on the left we can notice that we have severals connectors, the one which contains 4 pins can be UART port or another series port.
+The first thing I have to do is to identify what is on the board, I am looking for series ports, flash memory / eeprom... On the internal photo we can see a lot of things, first, on the left we can notice that we have severals connectors, the one which contains 4 pins can be UART port or another series port. Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
 
-Then, on the right side of the board there are two 8 pin chip, one of them can be flash memory or eeprom and can contains the firmware.
+The next steps are :
+
+1. Test the differents series port with a multimeter
+2. Test the differents series port with logic analyser if the multimeter result seems interresting
+3. Test the differents chips with a programmer to try to detect them
+4. Try to dump chip's memory if the programmer detect the chip
 
 ![Internal Demo](https://user-images.githubusercontent.com/48086737/170682756-4c242515-40b0-4e49-bb15-aa4a47a83c88.jpg)
 
 ### 2 - Test potentiel series port
 
-To test the 4 pin series port, I start by trying to find the ground with my multimeter in continuity mode.
+To test the 4 pin series port, I start by trying to find the GND with my multimeter in continuity mode (I find it with the GND pin of a chip).
 
-As I expect I can easily find the ground, then with my multimeter I looked for other pins, the output is 3,3 V. The two last pins, seems to be RX and TX, one is 0 V and the other oscillate, which can mean it send datas. 
+As I expect I can easily find the GND pin, then with my multimeter I looked for the other pins, the first one on the left is the + pin, the voltage is 3,3 V, then the second pin the GND pin. The two last pins, seems to be RX and TX, the third one is 0 V which can be the RX pin waiting for datas, and last one's voltage oscillates (tends to 2,63v), it seems to be the TX pin which transmits the datas.
+
+Now I will use my logic analyser and try to see if these pins send datas.
 
 ![Pins Demo](https://user-images.githubusercontent.com/48086737/170682821-88fe605e-e72f-498a-9cd6-2c420fe98d6c.jpg)
 
-### 3 - Use logic analyser
+### 3 - Using the logic analyser
 
-So, after soldering pins to test outputs easier, I can use my logic analyser to see datas and try to identify the protocol.
+After I praticaly identify pins, the next step is to see if these pins transmit datas, that is why I connect my logic analyser. The logic analyser just need to be connected to the ground and then to all pins we want to identify, the logic analyser will capture everything that is passings trough the pins and then can identify the protocol and the datas that are transmitted. As you can see I connected the 3 pins, the GND and the "potential" RX and TX pins.
 
 ![Logic Analyser 1](https://user-images.githubusercontent.com/48086737/170682898-b13fd3da-eb2a-43ac-a2f3-a2b33d503631.jpg)
 
 ![Logic Analyser 2](https://user-images.githubusercontent.com/48086737/170682963-70eb8386-2a83-42fe-b47a-df061057be15.jpg)
 
-After everthing is connected I can start DSView, config the logic analyzer and start the router to try to capture the outputs.
+After everthing is connected I can start DSView, I record 1 minute of communication just after the startup up of the router. When I use the decode feature the software detect the communication as UART and it start decoding the datas, as you can see on the DSView UI it start decoding : "Linux Version"... 
 
 ![DSView](https://user-images.githubusercontent.com/48086737/170683021-6e23dbe9-17a4-4712-814b-23eb6b123923.jpg)
 
-The captured datas are correctly recognized as UART communications and we can see the a part of the logs in ASCII.
-
-This is a part of decoded datas I collected (entire datas [here](https://github.com/adamhlt/TL-WR841N/files/8757659/logic.analyser.txt) :
+I post bellow a part of decoded datas I collected (entire datas [here](https://github.com/adamhlt/TL-WR841N/files/8757659/logic.analyser.txt) :
 
 ```
 Id,Time[ns],0:UART: RX/TX
@@ -142,9 +147,7 @@ Id,Time[ns],0:UART: RX/TX
 50,316967000.00000000000000000000,3
 ```
 
-We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das_U-Boot) boot loader.
-
-Next step is to connect pins to TTL to USB converter and try to get a shell.
+We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das_U-Boot) boot loader, the logic analyser has his own limitations, I can't get decoded datas in real time and can't interract with the RX pin. So, the final step is to connect the pins to the TTL to USB adapter and try to interract with the device and get a shell.
 
 ### 3 - Try to get a shell
 
