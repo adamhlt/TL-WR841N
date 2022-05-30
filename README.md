@@ -185,10 +185,14 @@ So, the problem don't come from the adapter.
 
 #### 2 - The RX signal is not transmit on the board
 
-As you can imagine the problem come from the board, after some investigation and be sure that is the problem don't come from the adapter, I find where the problem come from.
+As you can imagine the problem come from the board, after some investigations and be sure that the problem don't come from the adapter, I found where the problem come from. As you can see bellow, there is a missing resistor, this break the continuity and the signal can't go trough. Then, I reestablished the continuity and try to communicate with the device.
 
 ![Missing Resistor](https://user-images.githubusercontent.com/48086737/171010421-3175f8e7-ced1-453c-ab1b-43574034db71.jpg)
 
 ![Fix Resistor](https://user-images.githubusercontent.com/48086737/171010486-3a6ba0de-a854-4854-8971-4c3abe3c309c.jpeg)
 
 ![Fail Screenshot](https://user-images.githubusercontent.com/48086737/171012401-17c9c319-18bc-4d41-ad08-4732c76b02d2.jpg)
+
+As you can see we progress, now the device receive inputs, datas are absolutely junk but we can now access to the login prompt.
+
+At this point the RX voltage is always 3,3v, the device try to decode datas that I never send so we can imagine that the device interpret the voltage as low and think this is a start of communication (according to how UART works). This is a hypothesis but we can imagine that the voltage of RX is too low, the only higher voltage I have is 5v.
