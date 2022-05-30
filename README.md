@@ -151,9 +151,7 @@ We can indetify that's the router use [U-Boot](https://fr.wikipedia.org/wiki/Das
 
 ### 3 - Try to get a shell
 
-Now, I'm trying to get a shell on the device via UART, I'm using my TTL to USB adapter.
-
-When you connect adapter or any device which communicate using UART you should be careful about the way you plug the cables.
+The TTL to USB adapter permits to interact with the device in UART using tools like screen or putty. The cables have to be correctly connected, as you can see on the scheme bellow, we also need to know the baudrate to correctly communicate with the device, else the datas will not be decoded correctly and will be junk. I configured my adapter on 3,3v for the RX voltage.
 
 #### You have to plug the cables like this :
 
