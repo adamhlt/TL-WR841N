@@ -191,4 +191,4 @@ As you can imagine the problem come from the board, after some investigation and
 
 ![Fix Resistor](https://user-images.githubusercontent.com/48086737/171010486-3a6ba0de-a854-4854-8971-4c3abe3c309c.jpeg)
 
-<img width="873" alt="Fail Screenshot" src="https://user-images.githubusercontent.com/48086737/171010606-d75e54c0-2122-4ead-891e-33bc5590bf66.png">
+![Fail Screenshot](https://user-images.githubusercontent.com/48086737/171012401-17c9c319-18bc-4d41-ad08-4732c76b02d2.jpg)
