@@ -164,3 +164,23 @@ The TTL to USB adapter permits to interact with the device in UART using tools l
 ![Setup 2](https://user-images.githubusercontent.com/48086737/170683167-4caebf8f-d8ea-48da-87f5-75ab388f85c9.jpg)
 
 https://user-images.githubusercontent.com/48086737/170248292-8ba71541-bd88-4038-8fe3-116d35919d7b.mp4
+
+After some tests, I conclude that I can't interract with the device and can't get a shell. 
+
+I have some hypothesis about why I can't interract with the device.
+
+Hypothesis :
+
+- The firmware don't listen to RX and use UART just for logging
+- The RX signal is not transmit on the board
+- The TX signal is not working on the adapter
+
+I will try to solve every hypothesis and find what is the problem, I will start by the easiest to the hardest to solve. I can only test the 2 last hypothesis because I can't know if the firmware has limitations without reversing it.
+
+##### 1 - The TX signal is not working on the adapter
+
+The hypotesis can be easily discarded, on the TTL adapter there is a led that indicate when a signal is send, and it is perfectly working. Moreover when I connect the TX pin to the RX pin of the adapter everything works great.
+
+So, the problem don't come from the adapter.
+
+##### 2 - The RX signal is not transmit on the board
