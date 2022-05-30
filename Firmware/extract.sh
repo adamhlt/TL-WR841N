@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if ! test -f "firmware.bin"; then
-	printf "Firmware file not found !"
+	printf "Firmware file not found !\n\n"
 	exit -1
 fi
 
@@ -13,7 +13,7 @@ if ! test -d "firmware_extract"; then
 	printf "Extract directory created !\n\n"
 else
 	sudo rm -r firmware_extract
-	printf "Extract directory removed !"
+	printf "Extract directory removed !\n\n"
 	mkdir firmware_extract
         printf "Extract directory created !\n\n"
 fi
