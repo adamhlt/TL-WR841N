@@ -10,7 +10,7 @@ printf "Backup file created\n\n"
 
 if ! test -d "firmware_extract"; then
 	mkdir firmware_extract
-	printf "Extract directory created !"
+	printf "Extract directory created !\n\n"
 else
 	sudo rm -r firmware_extract
 	printf "Extract directory removed !"
@@ -28,7 +28,7 @@ printf "UBoot string extract > firmware_part2.bin\n\n"
 
 touch firmware_extract/firmware_part3.bin
 dd if=firmware.bin of=firmware_extract/firmware_part3.bin bs=1 skip=12976 count=1312
-printf "CRC23 polynomial table extract > firmware_part3.bin\n\n"
+printf "CRC32 polynomial table extract > firmware_part3.bin\n\n"
 
 touch firmware_extract/firmware_part4.bin
 dd if=firmware.bin of=firmware_extract/firmware_part4.bin bs=1 skip=14288 count=64
