@@ -184,3 +184,6 @@ The hypotesis can be easily discarded, on the TTL adapter there is a led that in
 So, the problem don't come from the adapter.
 
 #### 2 - The RX signal is not transmit on the board
+
+As you can imagine the problem come from the board, after some investigation and be sure that is the problem don't come from the adapter, I find where the problem come from.
+
