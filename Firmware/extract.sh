@@ -47,7 +47,13 @@ dd if=firmware.bin of=firmware_extract/firmware_part7.bin bs=1 skip=131584 count
 printf "LZMA compressed data > firmware_part7.bin\n\n"
 
 touch firmware_extract/firmware_part8.bin
-dd if=firmware.bin of=firmware_extract/firmware_part8.bin bs=1 skip=1179648 count=3014656
+dd if=firmware.bin of=firmware_extract/firmware_part8.bin bs=1 skip=1179648 count=2883584
 printf "Squashfs filesystem extract > firmware_part8.bin\n\n"
+
+touch firmware_extract/firmware_part9.bin
+dd if=firmware.bin of=firmware_extract/firmware_part9.bin bs=1 skip=4063232 count=131072
+printf "config > firmware_part9.bin\n\n"
+
+sudo unsquashfs firmware_extract/firmware_part8.bin
 
 printf "Firmware successfully extracted !\n\n"

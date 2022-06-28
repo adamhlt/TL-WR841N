@@ -7,6 +7,7 @@ fi
 
 if ! test -f "cfw.bin"; then
         touch cfw.bin
+	dd if=/dev/zero bs=1 count=4194304 | tr "\000" "\377" > cfw.bin
 	printf "Custom firmware file created !\n\n"
 else
 	rm cfw.bin
@@ -70,10 +71,26 @@ else
 fi
 
 if test -f "firmware_extract/firmware_part8.bin"; then
-        dd if=firmware_extract/firmware_part8.bin of=cfw.bin bs=1 skip=0 count=3014656 seek=1179648
+        rm firmware_extract/firmware_part8.bin
+        printf "Old Part 8 Removed\n\n"
+	mksquashfs firmware_extract/squashfs-root/ firmware_extract/firmware_part8.bin -comp lzma
+else
+	mksquashfs firmware_extract/squashfs-root/ firmware_extract/firmware_part8.bin -comp lzma
+fi
+
+if test -f "firmware_extract/firmware_part8.bin"; then
+        dd if=firmware_extract/firmware_part8.bin of=cfw.bin bs=1 skip=0 count=2883584 seek=1179648
         printf "Part 8 builded\n\n"
 else
         printf "Image part 8 is missing !\n\n"
+        exit 0
+fi
+
+if test -f "firmware_extract/firmware_part9.bin"; then
+        dd if=firmware_extract/firmware_part9.bin of=cfw.bin bs=1 skip=0 count=131072 seek=4063232
+        printf "Part 9 builded\n\n"
+else
+        printf "Image part 9 is missing !\n\n"
         exit 0
 fi
 
