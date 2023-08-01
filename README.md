@@ -1,8 +1,18 @@
-![Banner](https://user-images.githubusercontent.com/48086737/170033919-fdad0cfb-926b-4d0f-9433-55660431b53e.png)
-
-# TL-WR841N
-
-[![Linux](https://img.shields.io/badge/platform-Linux-0078d7.svg?style=for-the-badge&logo=appveyor)](https://fr.wikipedia.org/wiki/Linux) [![x86](https://img.shields.io/badge/arch-MIPS-red.svg?style=for-the-badge&logo=appveyor)](https://fr.wikipedia.org/wiki/Architecture_MIPS)
+```
+                          ________       _       ______  ____  __ __ ____   __ 
+                         /_  __/ /      | |     / / __ \( __ )/ // /<  / | / /
+                          / / / /  _____| | /| / / /_/ / __  / // /_/ /  |/ /
+                         / / / /__/_____/ |/ |/ / _, _/ /_/ /__  __/ / /|  /
+                        /_/ /_____/     |__/|__/_/ |_|\____/  /_/ /_/_/ |_/
+                                                                  
+                                                                 
+                                  TL-WR841N Router Hardware Hacking
+                                     Reversing and Backdooring
+```
+<p align="center">
+    <img src="https://img.shields.io/badge/platform-Linux-0078d7.svg?style=for-the-badge&logo=appveyor" alt="Linux">
+    <img src="https://img.shields.io/badge/arch-MIPS-red.svg?style=for-the-badge&logo=appveyor" alt="MIPS">
+</p>
 
 ## 📖 Project Overview :
 
