@@ -76,7 +76,7 @@ python3 fwtool.py build            # repack the rootfs and reassemble firmware_e
 - `info` runs anywhere (useful to check from Windows that you need WSL) and never fails; `extract`/`build` check the OS and the required tools up front and refuse with a clear message (including the `apt install` command) if either is missing.
 - Splitting the 9 parts and reassembling the 4 MiB image is pure Python, with a sha256 printed for both the source and the rebuilt image.
 - Unpacking/repacking the SquashFS rootfs (part 8) is delegated to `unsquashfs` / `mksquashfs` (`squashfs-tools`, LZMA support required).
-- Run `extract` as `sudo` to recreate `/dev` device nodes faithfully; without root, `unsquashfs` skips them (and warns), which is enough to edit regular files but not bit-identical to the original rootfs.
+- Root is **not required**. Without it, `unsquashfs` just skips the rootfs's `/dev` device nodes and warns — regular files, directories and symlinks extract normally, which is enough to edit and repack. Run `extract` as `sudo` only if you specifically need those device nodes recreated (e.g. to get a byte-identical rootfs).
 - `extract` refuses to overwrite an existing `firmware_extract/` unless `-f`/`--force` is passed. A backup `firmware.bck` is created on first run.
 - The rebuilt rootfs must fit in the 2883584-byte slot; `build` aborts if it does not.
 
