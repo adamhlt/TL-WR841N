@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2022 Adam Henault
+#
+# This file is part of the TL-WR841N hardware-hacking project.
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version. See the LICENSE file at the root of the repository.
 """fwtool - extract and rebuild the TP-Link TL-WR841N firmware image.
 
 Linux only. `extract` and `build` shell out to `unsquashfs` / `mksquashfs`
@@ -7,11 +15,15 @@ partition; both are checked for up front and the script refuses to run
 anywhere but Linux, where that package is one `apt install` away.
 On Windows, run it from WSL.
 
+The input image defaults to the reference dump in `../Firmware Dumps/`; pass
+`-i/--firmware` to use another one. `build` recomputes the U-Boot uImage CRCs
+automatically (see the notes on the TP-Link header MD5 below).
+
 Usage:
     fwtool.py info             print the flash layout, validate magic bytes,
                                 report whether the required tools are present
-    fwtool.py extract [-f]     split firmware.bin and unpack the SquashFS rootfs
-    fwtool.py build            repack the SquashFS and reassemble cfw.bin
+    fwtool.py extract [-f]     split the image and unpack the SquashFS rootfs
+    fwtool.py build            repack the SquashFS, fix CRCs, reassemble cfw.bin
 """
 from __future__ import annotations
 
@@ -19,8 +31,10 @@ import argparse
 import hashlib
 import os
 import shutil
+import struct
 import subprocess
 import sys
+import zlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
@@ -33,11 +47,17 @@ REQUIRED_TOOLS: dict[str, str] = {
     "mksquashfs": "squashfs-tools",
 }
 
-FIRMWARE = "firmware.bin"
-BACKUP = "firmware.bck"
+# Default input image: the reference dump shipped in the repository.
+DUMPS_DIR = HERE.parent / "Firmware Dumps"
+REFERENCE_DUMP = "dump TL-FC5A.bin"
+
 EXTRACT_DIR = "firmware_extract"
 ROOTFS_DIR = "squashfs-root"
 OUTPUT = "cfw.bin"
+
+# U-Boot uImage (wraps the bootloader); its CRCs are recomputed on build.
+UIMAGE_OFFSET = 0x37D0
+UIMAGE_MAGIC = bytes.fromhex("27051956")
 
 
 class FwError(Exception):
@@ -81,7 +101,7 @@ ROOTFS_PART = PARTS[7]
 # (offset, expected bytes, description) - sanity checks, not a full parser
 MAGICS: tuple[tuple[int, bytes, str], ...] = (
     (0x003280, b"U-Boot 1.1.4", "U-Boot version string"),
-    (0x0037D0, bytes.fromhex("27051956"), "uImage magic"),
+    (0x0037D0, UIMAGE_MAGIC, "uImage magic"),
     (0x003810, b"\x5d", "U-Boot LZMA properties byte"),
     (0x020200, b"\x5d", "Kernel LZMA properties byte"),
     (0x120000, b"hsqs", "SquashFS magic (little endian)"),
@@ -101,7 +121,7 @@ def sha256_short(data: bytes) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Reporting - CLI prints to stdout, the TUI overrides this
+# Reporting
 # --------------------------------------------------------------------------- #
 
 
@@ -115,25 +135,8 @@ class Reporter:
 
 
 # --------------------------------------------------------------------------- #
-# Core operations
+# Platform / tools
 # --------------------------------------------------------------------------- #
-
-
-def read_flash(path: Path) -> bytes:
-    if not path.is_file():
-        raise FwError(f"firmware not found: {path}")
-    data = path.read_bytes()
-    if len(data) != FLASH_SIZE:
-        raise FwError(f"{path.name} is {len(data)} bytes, expected {FLASH_SIZE} (4 MiB flash dump)")
-    return data
-
-
-def check_layout(data: bytes) -> list[tuple[bool, str]]:
-    out = []
-    for offset, magic, desc in MAGICS:
-        ok = data[offset : offset + len(magic)] == magic
-        out.append((ok, f"0x{offset:06X}  {desc}"))
-    return out
 
 
 def check_platform() -> None:
@@ -156,6 +159,32 @@ def require_tools(*names: str) -> None:
             f"required tool(s) not found in PATH: {', '.join(missing)}. "
             f"Install with: sudo apt install {' '.join(packages)}"
         )
+
+
+# --------------------------------------------------------------------------- #
+# Helpers
+# --------------------------------------------------------------------------- #
+
+
+def default_firmware() -> Path:
+    return DUMPS_DIR / REFERENCE_DUMP
+
+
+def read_flash(path: Path) -> bytes:
+    if not path.is_file():
+        raise FwError(f"firmware not found: {path}")
+    data = path.read_bytes()
+    if len(data) != FLASH_SIZE:
+        raise FwError(f"{path.name} is {len(data)} bytes, expected {FLASH_SIZE} (4 MiB flash dump)")
+    return data
+
+
+def check_layout(data: bytes) -> list[tuple[bool, str]]:
+    out = []
+    for offset, magic, desc in MAGICS:
+        ok = data[offset : offset + len(magic)] == magic
+        out.append((ok, f"0x{offset:06X}  {desc}"))
+    return out
 
 
 def run_tool(cmd: list[str], rep: Reporter, cwd: Optional[Path] = None) -> int:
@@ -185,22 +214,56 @@ def remove_dir(path: Path) -> None:
     shutil.rmtree(path, onerror=onerror)
 
 
-def extract(work: Path, rep: Reporter, firmware: Optional[Path] = None, force: bool = False) -> None:
-    """Split firmware.bin into its 9 parts, then unpack the SquashFS rootfs."""
+def recompute_uimage_crc(image: bytearray, rep: Reporter) -> None:
+    """Fix the U-Boot uImage header CRC and data CRC in place.
+
+    The uImage at UIMAGE_OFFSET wraps the bootloader. Both CRC32 values
+    (data CRC over the payload, header CRC over the 64-byte header with its
+    own CRC field zeroed) are recomputed so an edited bootloader stays valid.
+    No-op if the payload was not changed.
+    """
+    if bytes(image[UIMAGE_OFFSET : UIMAGE_OFFSET + 4]) != UIMAGE_MAGIC:
+        rep.log("no uImage magic at expected offset, skipping CRC recompute", "warn")
+        return
+
+    hdr = image[UIMAGE_OFFSET : UIMAGE_OFFSET + 64]
+    size = struct.unpack(">I", hdr[12:16])[0]
+    old_hcrc = struct.unpack(">I", hdr[4:8])[0]
+    old_dcrc = struct.unpack(">I", hdr[24:28])[0]
+
+    payload = bytes(image[UIMAGE_OFFSET + 64 : UIMAGE_OFFSET + 64 + size])
+    new_dcrc = zlib.crc32(payload) & 0xFFFFFFFF
+    image[UIMAGE_OFFSET + 24 : UIMAGE_OFFSET + 28] = struct.pack(">I", new_dcrc)
+
+    h2 = bytearray(image[UIMAGE_OFFSET : UIMAGE_OFFSET + 64])
+    h2[4:8] = b"\x00\x00\x00\x00"
+    new_hcrc = zlib.crc32(bytes(h2)) & 0xFFFFFFFF
+    image[UIMAGE_OFFSET + 4 : UIMAGE_OFFSET + 8] = struct.pack(">I", new_hcrc)
+
+    if (new_dcrc, new_hcrc) != (old_dcrc, old_hcrc):
+        rep.log(
+            f"uImage CRC updated: dcrc {old_dcrc:08X}->{new_dcrc:08X}, hcrc {old_hcrc:08X}->{new_hcrc:08X}",
+            "ok",
+        )
+    else:
+        rep.log("uImage CRC verified (bootloader unchanged)", "info")
+
+
+# --------------------------------------------------------------------------- #
+# Core operations
+# --------------------------------------------------------------------------- #
+
+
+def extract(work: Path, rep: Reporter, firmware: Path, force: bool = False) -> None:
+    """Split the image into its 9 parts, then unpack the SquashFS rootfs."""
     check_platform()
     require_tools("unsquashfs")
 
-    firmware = firmware or (work / FIRMWARE)
     data = read_flash(firmware)
     rep.log(f"Loaded {firmware.name} ({len(data)} bytes, sha256 {sha256_short(data)}...)")
 
     for ok, text in check_layout(data):
         rep.log(text, "ok" if ok else "warn")
-
-    backup = work / BACKUP
-    if not backup.exists():
-        shutil.copyfile(firmware, backup)
-        rep.log(f"Backup created: {backup.name}", "ok")
 
     out_dir = work / EXTRACT_DIR
     if out_dir.exists():
@@ -238,7 +301,7 @@ def _load_part(out_dir: Path, part: Part) -> bytes:
 
 
 def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
-    """Repack the SquashFS rootfs and reassemble cfw.bin."""
+    """Repack the SquashFS rootfs, fix CRCs and reassemble cfw.bin."""
     check_platform()
     require_tools("mksquashfs")
 
@@ -283,7 +346,14 @@ def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
             data = _load_part(out_dir, part)
             image[part.offset : part.end] = data
         rep.log(f"part {part.index}  0x{part.offset:06X}  placed ({part.label})")
-        rep.progress(0.3 + 0.7 * i / total, f"assembling part {part.index}/{total}")
+        rep.progress(0.3 + 0.6 * i / total, f"assembling part {part.index}/{total}")
+
+    recompute_uimage_crc(image, rep)
+    rep.log(
+        "TP-Link header MD5 left as-is (not verified by a CH341A reflash; "
+        "recompute with mksquashfs/mktplinkfw only if flashing via the OEM web updater)",
+        "info",
+    )
 
     output.write_bytes(image)
     rep.progress(1.0, "build complete")
@@ -296,8 +366,11 @@ def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
 # --------------------------------------------------------------------------- #
 
 
+def resolve_firmware(args: argparse.Namespace) -> Path:
+    return Path(args.firmware) if args.firmware else default_firmware()
+
+
 def cmd_info(args: argparse.Namespace) -> int:
-    work = Path(args.dir)
     try:
         check_platform()
     except FwError as exc:
@@ -305,7 +378,8 @@ def cmd_info(args: argparse.Namespace) -> int:
     print(f"{'#':>2}  {'offset':>10}  {'size':>10}  label")
     for part in PARTS:
         print(f"{part.index:>2}  0x{part.offset:08X}  {part.size:>10}  {part.label}")
-    firmware = work / FIRMWARE
+
+    firmware = resolve_firmware(args)
     if firmware.is_file():
         data = read_flash(firmware)
         print(f"\n{firmware.name}: {len(data)} bytes, sha256 {sha256_short(data)}...")
@@ -313,6 +387,7 @@ def cmd_info(args: argparse.Namespace) -> int:
             print(("[OK]   " if ok else "[FAIL] ") + text)
     else:
         print(f"\n({firmware} not found, skipping magic-byte check)")
+
     print()
     for tool in ("unsquashfs", "mksquashfs", "binwalk"):
         path = tool_path(tool)
@@ -328,7 +403,7 @@ def cmd_info(args: argparse.Namespace) -> int:
 def cmd_extract(args: argparse.Namespace) -> int:
     rep = Reporter()
     try:
-        extract(Path(args.dir), rep, force=args.force)
+        extract(Path(args.dir), rep, resolve_firmware(args), force=args.force)
     except FwError as exc:
         rep.log(str(exc), "error")
         return 1
@@ -347,15 +422,22 @@ def cmd_build(args: argparse.Namespace) -> int:
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dir", default=str(HERE), help="firmware working directory (default: script directory)")
+    parser.add_argument("--dir", default=str(HERE), help="output working directory (default: script directory)")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("info", help="show the flash layout and validate magic bytes")
+    def add_firmware_opt(p: argparse.ArgumentParser) -> None:
+        p.add_argument(
+            "-i", "--firmware", default=None, help=f"input image (default: ../Firmware Dumps/{REFERENCE_DUMP})"
+        )
 
-    p_extract = sub.add_parser("extract", help="split firmware.bin and unpack the rootfs")
+    p_info = sub.add_parser("info", help="show the flash layout and validate magic bytes")
+    add_firmware_opt(p_info)
+
+    p_extract = sub.add_parser("extract", help="split the image and unpack the rootfs")
+    add_firmware_opt(p_extract)
     p_extract.add_argument("-f", "--force", action="store_true", help="overwrite an existing firmware_extract/")
 
-    sub.add_parser("build", help="repack the rootfs and reassemble cfw.bin")
+    sub.add_parser("build", help="repack the rootfs, fix CRCs and reassemble cfw.bin")
 
     args = parser.parse_args(argv)
     handlers: dict[str, Callable[[argparse.Namespace], int]] = {

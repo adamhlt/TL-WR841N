@@ -17,7 +17,7 @@
 | Hardware | Software |
 | --- | --- |
 | CH341A flash programmer + SOIC8 clip | [binwalk](https://github.com/ReFirmLabs/binwalk) |
-| TTL to USB adapter (UART) | `dd`, `squashfs-tools` (`unsquashfs` / `mksquashfs`) |
+| TTL to USB adapter (UART) | `squashfs-tools` (`unsquashfs` / `mksquashfs`) |
 | Logic analyser (DSLogic U2 Basic) | DSView, PuTTY / `screen` |
 
 ## Repository layout
@@ -25,19 +25,27 @@
 ```
 .
 ├── Firmware/
-│   ├── firmware.bin     # Reference dump
-│   ├── details.txt      # binwalk output
-│   ├── fwtool.py         # CLI: extract/build the image, Linux only (see below)
-│   ├── extract.sh        # Legacy shell version, kept for reference
-│   └── rebuild.sh        # Legacy shell version, kept for reference
-├── Firmware Dumps/    # Raw flash dumps
+│   ├── details.txt       # binwalk output
+│   └── fwtool.py         # CLI: extract/build the image, Linux only (see below)
+├── Firmware Dumps/       # Raw SPI flash dumps, one per router (see below)
+├── .gitattributes
+├── .gitignore
 └── LICENSE
 ```
+
+## Flash dumps
+
+[`Firmware Dumps/`](Firmware%20Dumps) holds one full 4 MiB SPI dump per physical
+router, read with the CH341A. **Each file is a different device**, named after
+the SSID that unit broadcasts (`TL-16DC`, `TL-E234`, `TL-FC5A`). They are
+byte-identical except for ~100 bytes in the TP-Link header and config areas
+(per-device data: MAC, calibration, serial). `dump TL-FC5A.bin` is the
+reference image used by `fwtool.py` and analysed below.
 
 ## Firmware analysis
 
 ```bash
-binwalk Firmware/firmware.bin
+binwalk "Firmware Dumps/dump TL-FC5A.bin"
 ```
 
 Output saved in [`Firmware/details.txt`](Firmware/details.txt).
@@ -56,11 +64,13 @@ Output saved in [`Firmware/details.txt`](Firmware/details.txt).
 | `0x120000` (1179648) | 2883584 | SquashFS 4.0, little endian, LZMA, 560 inodes, block size 128 KB |
 | `0x3E0000` (4063232) | 131072 | Config partition |
 
-Sizes are those used by `extract.sh` / `rebuild.sh`. The kernel entry point is `0x80002000`.
+The kernel entry point is `0x80002000`.
 
 ## Extract and rebuild
 
-`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single Python CLI.
+[`Firmware/fwtool.py`](Firmware/fwtool.py) is a single Python CLI that splits
+the image, unpacks the rootfs, lets you edit it, then repacks and reassembles a
+flashable image.
 
 > **Linux only.** The script shells out to `unsquashfs` / `mksquashfs` and refuses to run on anything else. **On Windows, run it from WSL** (`wsl`, then `cd /mnt/c/...`).
 
@@ -68,19 +78,21 @@ Sizes are those used by `extract.sh` / `rebuild.sh`. The kernel entry point is `
 sudo apt install squashfs-tools    # provides unsquashfs / mksquashfs
 
 cd Firmware
-python3 fwtool.py info             # flash layout, magic-byte check, required-tool check
-python3 fwtool.py extract [-f]     # split firmware.bin into firmware_extract/, unpack the rootfs
-python3 fwtool.py build            # repack the rootfs and reassemble firmware_extract/ into cfw.bin
+python3 fwtool.py info              # flash layout, magic-byte check, required-tool check
+python3 fwtool.py extract [-f]      # split the image into firmware_extract/, unpack the rootfs
+python3 fwtool.py build             # repack the rootfs, fix CRCs, reassemble cfw.bin
 ```
 
+- The input image defaults to `../Firmware Dumps/dump TL-FC5A.bin`; use `-i/--firmware PATH` to point at another dump.
 - `info` runs anywhere (useful to check from Windows that you need WSL) and never fails; `extract`/`build` check the OS and the required tools up front and refuse with a clear message (including the `apt install` command) if either is missing.
 - Splitting the 9 parts and reassembling the 4 MiB image is pure Python, with a sha256 printed for both the source and the rebuilt image.
 - Unpacking/repacking the SquashFS rootfs (part 8) is delegated to `unsquashfs` / `mksquashfs` (`squashfs-tools`, LZMA support required).
+- **`build` recomputes the U-Boot uImage CRCs** (header + data CRC32) automatically, so an edited bootloader stays valid. The TP-Link header MD5 is left untouched: a direct CH341A reflash does not check it (only the OEM web updater does).
 - Root is **not required**. Without it, `unsquashfs` just skips the rootfs's `/dev` device nodes and warns — regular files, directories and symlinks extract normally, which is enough to edit and repack. Run `extract` as `sudo` only if you specifically need those device nodes recreated (e.g. to get a byte-identical rootfs).
-- `extract` refuses to overwrite an existing `firmware_extract/` unless `-f`/`--force` is passed. A backup `firmware.bck` is created on first run.
+- `extract` refuses to overwrite an existing `firmware_extract/` unless `-f`/`--force` is passed.
 - The rebuilt rootfs must fit in the 2883584-byte slot; `build` aborts if it does not.
 
-Flash `cfw.bin` back with the CH341A and SOIC8 clip. `extract.sh` / `rebuild.sh` are kept in the repository for reference but are superseded by `fwtool.py`.
+Flash the resulting `cfw.bin` back with the CH341A and SOIC8 clip.
 
 ## Disclaimer
 
@@ -88,4 +100,4 @@ For **educational purposes**, on hardware I own. Do not use these techniques on 
 
 ## License
 
-See [LICENSE](LICENSE).
+Released under the **GNU GPL v3** — see [LICENSE](LICENSE).

@@ -1,0 +1,9 @@
+# fwtool.py build/extract artifacts
+Firmware/firmware_extract/
+Firmware/cfw.bin
+Firmware/firmware.bck
+Firmware/firmware.bin
+
+# Python
+__pycache__/
+*.py[cod]
