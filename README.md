@@ -25,10 +25,13 @@
 ```
 .
 ├── Firmware/
-│   ├── firmware.bin   # Reference dump
-│   ├── details.txt    # binwalk output
-│   ├── extract.sh     # Split and unpack the image
-│   └── rebuild.sh     # Repack and rebuild a custom image
+│   ├── firmware.bin     # Reference dump
+│   ├── details.txt      # binwalk output
+│   ├── fwtool.py         # CLI + TUI: extract/build the image (see below)
+│   ├── fwtool_tui.py     # Textual interface used by fwtool.py
+│   ├── requirements.txt  # TUI dependency (textual)
+│   ├── extract.sh        # Legacy shell version, kept for reference
+│   └── rebuild.sh        # Legacy shell version, kept for reference
 ├── Firmware Dumps/    # Raw flash dumps
 └── LICENSE
 ```
@@ -59,26 +62,24 @@ Sizes are those used by `extract.sh` / `rebuild.sh`. The kernel entry point is `
 
 ## Extract and rebuild
 
+`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single Python tool: a CLI usable with no dependency, plus an optional TUI.
+
 ```bash
 cd Firmware
+pip install -r requirements.txt   # optional, only needed for the TUI
 
-# Split firmware.bin into 9 parts and unpack the SquashFS
-# (a backup firmware.bck is created automatically)
-./extract.sh
-
-# ... modify firmware_extract/squashfs-root/ ...
-
-# Repack the SquashFS (LZMA) and reassemble a 4 MB image: cfw.bin
-./rebuild.sh
+python fwtool.py                  # launch the TUI
+python fwtool.py info             # print the flash layout, check magic bytes, list available tools
+python fwtool.py extract [-f]     # split firmware.bin into firmware_extract/, unpack the rootfs
+python fwtool.py build            # repack the rootfs and reassemble firmware_extract/ into cfw.bin
 ```
 
-Requirements: `dd`, `squashfs-tools`, `sudo`.
+- Splitting the 9 parts and reassembling the 4 MiB image is pure Python and always works, with a sha256 printed for both the source and the rebuilt image.
+- Unpacking/repacking the SquashFS rootfs (part 8) calls `unsquashfs` / `mksquashfs` (`squashfs-tools`, LZMA support) if they are on `PATH`; otherwise that partition is left untouched and a warning is printed, so `extract` + `build` still round-trip the other 8 parts.
+- `extract` refuses to overwrite an existing `firmware_extract/` unless `-f`/`--force` is passed. A backup `firmware.bck` is created on first run.
+- The rebuilt rootfs must fit in the 2883584-byte slot; `build` aborts if it does not.
 
-- `extract.sh` writes `firmware_extract/firmware_part1.bin` to `firmware_part9.bin`, then runs `unsquashfs` on part 8.
-- `rebuild.sh` creates a 4 MB `0xFF`-filled `cfw.bin`, copies parts 1 to 7 and 9 back at their original offsets, and rebuilds part 8 with `mksquashfs -comp lzma`.
-- The repacked SquashFS must fit in its 2883584-byte slot.
-
-Flash `cfw.bin` back with the CH341A and SOIC8 clip.
+Flash `cfw.bin` back with the CH341A and SOIC8 clip. `extract.sh` / `rebuild.sh` are kept in the repository for reference but are superseded by `fwtool.py`.
 
 ## Disclaimer
 
