@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """fwtool - extract and rebuild the TP-Link TL-WR841N firmware image.
 
+Linux only. `extract` and `build` shell out to `unsquashfs` / `mksquashfs`
+(squashfs-tools, built with LZMA support) to unpack and repack the rootfs
+partition; both are checked for up front and the script refuses to run
+anywhere but Linux, where that package is one `apt install` away.
+On Windows, run it from WSL.
+
 Usage:
-    fwtool.py info             print the flash layout and validate magic bytes
+    fwtool.py info             print the flash layout, validate magic bytes,
+                                report whether the required tools are present
     fwtool.py extract [-f]     split firmware.bin and unpack the SquashFS rootfs
     fwtool.py build            repack the SquashFS and reassemble cfw.bin
-
-Splitting / reassembling the 4 MiB image is pure Python and always works.
-Unpacking / repacking the SquashFS partition needs `unsquashfs` / `mksquashfs`
-(squashfs-tools, built with LZMA support); if they are missing, extract/build
-still run but leave that one partition untouched, with a warning.
 """
 from __future__ import annotations
 
@@ -18,12 +20,18 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 
 HERE = Path(__file__).resolve().parent
 FLASH_SIZE = 4 * 1024 * 1024
+
+REQUIRED_TOOLS: dict[str, str] = {
+    "unsquashfs": "squashfs-tools",
+    "mksquashfs": "squashfs-tools",
+}
 
 FIRMWARE = "firmware.bin"
 BACKUP = "firmware.bck"
@@ -128,8 +136,26 @@ def check_layout(data: bytes) -> list[tuple[bool, str]]:
     return out
 
 
+def check_platform() -> None:
+    if not sys.platform.startswith("linux"):
+        raise FwError(
+            f"fwtool requires Linux (unsquashfs/mksquashfs), detected: {sys.platform}. "
+            "On Windows, run it from WSL: `wsl` then `cd /mnt/c/...` (see README)."
+        )
+
+
 def tool_path(name: str) -> Optional[str]:
     return shutil.which(name)
+
+
+def require_tools(*names: str) -> None:
+    missing = [name for name in names if not tool_path(name)]
+    if missing:
+        packages = sorted({REQUIRED_TOOLS[name] for name in missing})
+        raise FwError(
+            f"required tool(s) not found in PATH: {', '.join(missing)}. "
+            f"Install with: sudo apt install {' '.join(packages)}"
+        )
 
 
 def run_tool(cmd: list[str], rep: Reporter, cwd: Optional[Path] = None) -> int:
@@ -161,6 +187,9 @@ def remove_dir(path: Path) -> None:
 
 def extract(work: Path, rep: Reporter, firmware: Optional[Path] = None, force: bool = False) -> None:
     """Split firmware.bin into its 9 parts, then unpack the SquashFS rootfs."""
+    check_platform()
+    require_tools("unsquashfs")
+
     firmware = firmware or (work / FIRMWARE)
     data = read_flash(firmware)
     rep.log(f"Loaded {firmware.name} ({len(data)} bytes, sha256 {sha256_short(data)}...)")
@@ -187,13 +216,9 @@ def extract(work: Path, rep: Reporter, firmware: Optional[Path] = None, force: b
         rep.log(f"part {part.index}  0x{part.offset:06X}  {part.size:>8} B  {part.label}")
         rep.progress(i / total_steps, f"split part {part.index}/{len(PARTS)}")
 
-    unsquashfs = tool_path("unsquashfs")
-    if not unsquashfs:
-        rep.log("unsquashfs not found: SquashFS left packed in firmware_part8.bin", "warn")
-        rep.progress(1.0, "done (rootfs not unpacked)")
-        return
-
     rootfs = out_dir / ROOTFS_DIR
+    unsquashfs = tool_path("unsquashfs")
+    assert unsquashfs  # checked by require_tools() above
     cmd = [unsquashfs, "-d", str(rootfs), str(out_dir / ROOTFS_PART.filename)]
     code = run_tool(cmd, rep)
     if code != 0 and not rootfs.is_dir():
@@ -213,7 +238,10 @@ def _load_part(out_dir: Path, part: Part) -> bytes:
 
 
 def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
-    """Repack the SquashFS rootfs (if present) and reassemble cfw.bin."""
+    """Repack the SquashFS rootfs and reassemble cfw.bin."""
+    check_platform()
+    require_tools("mksquashfs")
+
     out_dir = work / EXTRACT_DIR
     output = output or (work / OUTPUT)
     if not out_dir.is_dir():
@@ -221,9 +249,10 @@ def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
 
     rootfs = out_dir / ROOTFS_DIR
     rootfs_part_path = out_dir / ROOTFS_PART.filename
-    mksquashfs = tool_path("mksquashfs")
 
-    if rootfs.is_dir() and mksquashfs:
+    if rootfs.is_dir():
+        mksquashfs = tool_path("mksquashfs")
+        assert mksquashfs  # checked by require_tools() above
         rep.log("Repacking rootfs with mksquashfs (LZMA)...")
         rebuilt = out_dir / "rootfs.rebuilt.sqsh"
         if rebuilt.exists():
@@ -238,8 +267,8 @@ def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
             )
         rootfs_part_path = rebuilt
         rep.log(f"Rootfs repacked: {rebuilt.stat().st_size} bytes", "ok")
-    elif rootfs.is_dir():
-        rep.log("mksquashfs not found: keeping the existing SquashFS partition unchanged", "warn")
+    else:
+        rep.log(f"{ROOTFS_DIR}/ not found: keeping the existing SquashFS partition unchanged", "warn")
     rep.progress(0.3, "rootfs ready")
 
     image = bytearray(b"\xff" * FLASH_SIZE)
@@ -269,6 +298,10 @@ def build(work: Path, rep: Reporter, output: Optional[Path] = None) -> Path:
 
 def cmd_info(args: argparse.Namespace) -> int:
     work = Path(args.dir)
+    try:
+        check_platform()
+    except FwError as exc:
+        print(f"[!] {exc}")
     print(f"{'#':>2}  {'offset':>10}  {'size':>10}  label")
     for part in PARTS:
         print(f"{part.index:>2}  0x{part.offset:08X}  {part.size:>10}  {part.label}")
@@ -280,9 +313,15 @@ def cmd_info(args: argparse.Namespace) -> int:
             print(("[OK]   " if ok else "[FAIL] ") + text)
     else:
         print(f"\n({firmware} not found, skipping magic-byte check)")
+    print()
     for tool in ("unsquashfs", "mksquashfs", "binwalk"):
         path = tool_path(tool)
-        print(f"{tool}: {path or 'not found'}")
+        if path:
+            print(f"{tool}: {path}")
+        else:
+            pkg = REQUIRED_TOOLS.get(tool)
+            hint = f" (sudo apt install {pkg})" if pkg else " (optional)"
+            print(f"{tool}: not found{hint}")
     return 0
 
 

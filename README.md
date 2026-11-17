@@ -27,7 +27,7 @@
 ├── Firmware/
 │   ├── firmware.bin     # Reference dump
 │   ├── details.txt      # binwalk output
-│   ├── fwtool.py         # CLI: extract/build the image (see below)
+│   ├── fwtool.py         # CLI: extract/build the image, Linux only (see below)
 │   ├── extract.sh        # Legacy shell version, kept for reference
 │   └── rebuild.sh        # Legacy shell version, kept for reference
 ├── Firmware Dumps/    # Raw flash dumps
@@ -60,18 +60,23 @@ Sizes are those used by `extract.sh` / `rebuild.sh`. The kernel entry point is `
 
 ## Extract and rebuild
 
-`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single, dependency-free Python CLI.
+`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single Python CLI.
+
+> **Linux only.** The script shells out to `unsquashfs` / `mksquashfs` and refuses to run on anything else. **On Windows, run it from WSL** (`wsl`, then `cd /mnt/c/...`).
 
 ```bash
-cd Firmware
+sudo apt install squashfs-tools    # provides unsquashfs / mksquashfs
 
-python fwtool.py info             # print the flash layout, check magic bytes, list available tools
-python fwtool.py extract [-f]     # split firmware.bin into firmware_extract/, unpack the rootfs
-python fwtool.py build            # repack the rootfs and reassemble firmware_extract/ into cfw.bin
+cd Firmware
+python3 fwtool.py info             # flash layout, magic-byte check, required-tool check
+python3 fwtool.py extract [-f]     # split firmware.bin into firmware_extract/, unpack the rootfs
+python3 fwtool.py build            # repack the rootfs and reassemble firmware_extract/ into cfw.bin
 ```
 
-- Splitting the 9 parts and reassembling the 4 MiB image is pure Python and always works, with a sha256 printed for both the source and the rebuilt image.
-- Unpacking/repacking the SquashFS rootfs (part 8) calls `unsquashfs` / `mksquashfs` (`squashfs-tools`, LZMA support) if they are on `PATH`; otherwise that partition is left untouched and a warning is printed, so `extract` + `build` still round-trip the other 8 parts.
+- `info` runs anywhere (useful to check from Windows that you need WSL) and never fails; `extract`/`build` check the OS and the required tools up front and refuse with a clear message (including the `apt install` command) if either is missing.
+- Splitting the 9 parts and reassembling the 4 MiB image is pure Python, with a sha256 printed for both the source and the rebuilt image.
+- Unpacking/repacking the SquashFS rootfs (part 8) is delegated to `unsquashfs` / `mksquashfs` (`squashfs-tools`, LZMA support required).
+- Run `extract` as `sudo` to recreate `/dev` device nodes faithfully; without root, `unsquashfs` skips them (and warns), which is enough to edit regular files but not bit-identical to the original rootfs.
 - `extract` refuses to overwrite an existing `firmware_extract/` unless `-f`/`--force` is passed. A backup `firmware.bck` is created on first run.
 - The rebuilt rootfs must fit in the 2883584-byte slot; `build` aborts if it does not.
 
