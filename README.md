@@ -27,9 +27,7 @@
 ├── Firmware/
 │   ├── firmware.bin     # Reference dump
 │   ├── details.txt      # binwalk output
-│   ├── fwtool.py         # CLI + TUI: extract/build the image (see below)
-│   ├── fwtool_tui.py     # Textual interface used by fwtool.py
-│   ├── requirements.txt  # TUI dependency (textual)
+│   ├── fwtool.py         # CLI: extract/build the image (see below)
 │   ├── extract.sh        # Legacy shell version, kept for reference
 │   └── rebuild.sh        # Legacy shell version, kept for reference
 ├── Firmware Dumps/    # Raw flash dumps
@@ -62,13 +60,11 @@ Sizes are those used by `extract.sh` / `rebuild.sh`. The kernel entry point is `
 
 ## Extract and rebuild
 
-`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single Python tool: a CLI usable with no dependency, plus an optional TUI.
+`fwtool.py` replaces the old `extract.sh` / `rebuild.sh` pair with a single, dependency-free Python CLI.
 
 ```bash
 cd Firmware
-pip install -r requirements.txt   # optional, only needed for the TUI
 
-python fwtool.py                  # launch the TUI
 python fwtool.py info             # print the flash layout, check magic bytes, list available tools
 python fwtool.py extract [-f]     # split firmware.bin into firmware_extract/, unpack the rootfs
 python fwtool.py build            # repack the rootfs and reassemble firmware_extract/ into cfw.bin

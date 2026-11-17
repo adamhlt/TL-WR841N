@@ -2,7 +2,6 @@
 """fwtool - extract and rebuild the TP-Link TL-WR841N firmware image.
 
 Usage:
-    fwtool.py                  launch the TUI
     fwtool.py info             print the flash layout and validate magic bytes
     fwtool.py extract [-f]     split firmware.bin and unpack the SquashFS rootfs
     fwtool.py build            repack the SquashFS and reassemble cfw.bin
@@ -19,7 +18,6 @@ import hashlib
 import os
 import shutil
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
@@ -308,20 +306,10 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
-def run_tui(work: Path) -> int:
-    try:
-        from fwtool_tui import run as tui_run  # local module, textual-based
-    except ImportError as exc:
-        print(f"[x] TUI unavailable ({exc}). Install with: pip install -r requirements.txt", file=sys.stderr)
-        print("    Falling back to CLI: use `fwtool.py info|extract|build`.", file=sys.stderr)
-        return 1
-    return tui_run(work)
-
-
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--dir", default=str(HERE), help="firmware working directory (default: script directory)")
-    sub = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("info", help="show the flash layout and validate magic bytes")
 
@@ -331,13 +319,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     sub.add_parser("build", help="repack the rootfs and reassemble cfw.bin")
 
     args = parser.parse_args(argv)
-    handlers: dict[Optional[str], Callable[[argparse.Namespace], int]] = {
+    handlers: dict[str, Callable[[argparse.Namespace], int]] = {
         "info": cmd_info,
         "extract": cmd_extract,
         "build": cmd_build,
     }
-    if args.command is None:
-        return run_tui(Path(args.dir))
     return handlers[args.command](args)
 
 
