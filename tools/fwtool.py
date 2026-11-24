@@ -15,7 +15,7 @@ partition; both are checked for up front and the script refuses to run
 anywhere but Linux, where that package is one `apt install` away.
 On Windows, run it from WSL.
 
-The input image defaults to the reference dump in `../Firmware Dumps/`; pass
+The input image defaults to the reference dump in `../dumps/`; pass
 `-i/--firmware` to use another one. `build` recomputes the U-Boot uImage CRCs
 automatically (see the notes on the TP-Link header MD5 below).
 
@@ -48,10 +48,10 @@ REQUIRED_TOOLS: dict[str, str] = {
 }
 
 # Default input image: the reference dump shipped in the repository.
-DUMPS_DIR = HERE.parent / "Firmware Dumps"
-REFERENCE_DUMP = "dump TL-FC5A.bin"
+DUMPS_DIR = HERE.parent / "dumps"
+REFERENCE_DUMP = "tl-fc5a.bin"
 
-EXTRACT_DIR = "firmware_extract"
+EXTRACT_DIR = "extracted"
 ROOTFS_DIR = "squashfs-root"
 OUTPUT = "cfw.bin"
 
@@ -427,7 +427,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     def add_firmware_opt(p: argparse.ArgumentParser) -> None:
         p.add_argument(
-            "-i", "--firmware", default=None, help=f"input image (default: ../Firmware Dumps/{REFERENCE_DUMP})"
+            "-i", "--firmware", default=None, help=f"input image (default: ../dumps/{REFERENCE_DUMP})"
         )
 
     p_info = sub.add_parser("info", help="show the flash layout and validate magic bytes")
@@ -435,7 +435,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     p_extract = sub.add_parser("extract", help="split the image and unpack the rootfs")
     add_firmware_opt(p_extract)
-    p_extract.add_argument("-f", "--force", action="store_true", help="overwrite an existing firmware_extract/")
+    p_extract.add_argument("-f", "--force", action="store_true", help="overwrite an existing extracted/")
 
     sub.add_parser("build", help="repack the rootfs, fix CRCs and reassemble cfw.bin")
 
