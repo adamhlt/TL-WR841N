@@ -4,6 +4,11 @@ tools/cfw.bin
 tools/firmware.bck
 tools/firmware.bin
 
+# vuln.py payload binaries (built by tools/payloads/build*.sh)
+tools/payloads/*.mips
+tools/payloads/*.tar.bz2
+tools/payloads/dropbear-*/
+
 # Python
 __pycache__/
 *.py[cod]
